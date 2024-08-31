@@ -1,2 +1,2 @@
-# enterprise-qna
-Enterprise Question-Answering System using Agentic LLMs/multimodal RAG
+## Enterprise Question-Answering System using Agentic LLMs/multimodal RAG
+
