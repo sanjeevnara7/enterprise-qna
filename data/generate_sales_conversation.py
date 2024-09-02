@@ -17,7 +17,11 @@ d = date_time.strftime("%s")
 #Set environment variable with API Key before usage
 
 def get_model_out(messages):
+<<<<<<< HEAD
     response = call_model(messages, max_new_tokens=2048, pad_token_id=pad_token_id)
+=======
+    response = call_model(messages, max_new_tokens=2048)
+>>>>>>> 0988ef31cccdf652d6416186dd7c744f4e10932d
     return response[0]['generated_text'][-1]["content"]
 
 def create_random_prompt(sales_data_row, roles=["Customer", "Salesman"], range_vals=(3, 15), industries=None):
@@ -50,13 +54,21 @@ def generate_sales_data_row(sales_data_row):
     prompt = create_random_prompt(sales_data_row)
     chat = get_chat_template()
     chat.append({'role': 'user', 'content': prompt})
+<<<<<<< HEAD
     response = call_model(chat, max_new_tokens=max_new_tokens, pad_token_id=pad_token_id)
+=======
+    response = call_model(chat, max_new_tokens=max_new_tokens)
+>>>>>>> 0988ef31cccdf652d6416186dd7c744f4e10932d
     synthetic_conv = response[0]['generated_text'][-1]["content"]
     return synthetic_conv
 
 def generate_sales_data(sales_df):
     convs = []
+<<<<<<< HEAD
     for idx, row in tqdm(sales_df.iterrows(), total=len(sales_df)):
+=======
+    for idx, row in tqdm(sales_df.iterrows()):
+>>>>>>> 0988ef31cccdf652d6416186dd7c744f4e10932d
         try:
             conv = generate_sales_data_row(row)
             convs.append(conv)

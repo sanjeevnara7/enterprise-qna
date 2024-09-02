@@ -6,6 +6,7 @@ import pandas as pd
 from tqdm import tqdm
 
 def get_model_out(messages):
+<<<<<<< HEAD
     response = call_model(messages, max_new_tokens=max_new_tokens, pad_token_id=pad_token_id)
     return response[0]['generated_text'][-1]["content"]
 
@@ -46,3 +47,13 @@ def process_resume_data(resume_data_df):
     resume_data_df['Key_points'] = kps
 
     return resume_data_df
+=======
+    response = call_model(messages, max_new_tokens=max_new_tokens)
+    return response[0]['generated_text'][-1]["content"]
+
+def generate_resume_kp(resume_str):
+    pass
+
+def process_resume_data(resume_data_df):
+    pass
+>>>>>>> 0988ef31cccdf652d6416186dd7c744f4e10932d
