@@ -1,9 +1,5 @@
 '''
-<<<<<<< HEAD
 This file contains core LLM utilities to allow chat with the model
-=======
-This file contains core LLM functionalities to allow chat with the model
->>>>>>> 0988ef31cccdf652d6416186dd7c744f4e10932d
 '''
 
 import os
@@ -25,10 +21,7 @@ def get_chat_template():
 #export auth token os environment variable before using
 #hf_token = os.environ['HF_AUTH_TOKEN']
 pipe = pipeline("text-generation", model="meta-llama/Meta-Llama-3.1-8B-Instruct", device=device) #token=hf_token)
-<<<<<<< HEAD
 pad_token_id = pipe.tokenizer.eos_token_id
-=======
->>>>>>> 0988ef31cccdf652d6416186dd7c744f4e10932d
 
 def call_model(*args, **kwargs):
     if args and kwargs:
@@ -46,10 +39,7 @@ def show_chat_pretty(chat):
         print(item["content"])
         print('-'*20)
     print('*'*40)
-<<<<<<< HEAD
     
-=======
->>>>>>> 0988ef31cccdf652d6416186dd7c744f4e10932d
 
 if __name__ == "__main__":
     #Unit test

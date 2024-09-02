@@ -1,6 +1,9 @@
-import llm_core
-import llm_data
-import semantic_routes
+'''
+This file contains the implementation of the chat system for question-answering.
+'''
+from . import llm_core
+from . import llm_data
+from . import semantic_routes
 
 import os
 import json
@@ -9,13 +12,15 @@ import pandas as pd
 import traceback
 
 class Chatbot():
-    def __init__(self, data_path):
+    def __init__(self, data_path, max_chat_messages=4): #Limited to 4 due to GPU constraints
         self.pipe = llm_core.pipe
         self.template = llm_core.get_chat_template()
         self.device = llm_core.device
         self.max_new_tokens = llm_core.max_new_tokens
         self.pad_token_id = llm_core.pad_token_id
         self.data_path = data_path
+        self.max_chat_messages = max_chat_messages
+        self.context_data = None #session context
         self.setup_data_sources()
         self.setup_router()
         self.show_init_message()
@@ -23,10 +28,10 @@ class Chatbot():
     def setup_data_sources(self):
         '''Load data into memory'''
         self.metadatas = llm_data.setup_metadata(data_source_path=self.data_path)
-        self.sales_df = llm_data._load_data('Sales')
-        self.cst_df = llm_data._load_data('Customer Support Tickets')
-        self.invoice_df = llm_data._load_data('Invoices')
-        self.resume_df = llm_data._load_data('Resumes')
+        self.sales_df = llm_data._load_data('Sales', location=self.data_path)
+        self.cst_df = llm_data._load_data('Customer Support Tickets', location=self.data_path)
+        self.invoice_df = llm_data._load_data('Invoices', location=self.data_path)
+        self.resume_df = llm_data._load_data('Resumes', location=self.data_path)
 
     def setup_router(self):
         '''
@@ -53,23 +58,36 @@ class Chatbot():
     def chat(self, message, chat_history=None):
         if chat_history is None:
             chat_history = self.template
-        chat_history.append({"role": "user", "content": "message"})
+        if len(chat_history) > self.max_chat_messages + 1:
+            chat_history = chat_history[:1] + chat_history[-self.max_chat_messages:] #System prompt + remainder
         
         #Perform semantic routing
         route = self.router(message)
-        print(route)
+        if route.name == 'chitchat':
+            #chitchat doesn't require data retrieval
+            chat_history.append({"role": "user", "content": message})
+            response = self.call_model(chat_history, max_new_tokens=self.max_new_tokens, pad_token_id=self.pad_token_id)
+            gen_out = response[0]['generated_text'][-1]["content"]
+            chat_history.append(response[0]['generated_text'][-1])
+            return gen_out, chat_history
 
         #Retrieve data
         data_sources = llm_data.query_sources(message, self.metadatas)
-        #print(data_sources)
-        if data_sources is None or len(data_sources) == 0:
-            # gen_out = "I wasn't able to find any information regarding that. Could you provide some more context to clarify what you need?"
-            gen_out = "I'm not sure if I can help you with that. Could you provide some more context to clarify what you need?"
-            chat_history.append({"role": "assistant", "content": gen_out})
+        print(data_sources)
+        if data_sources is None or len(data_sources) == 0 and route.name is None:
+            
+            chat_history.append({"role": "user", "content": message})
+            response = self.call_model(chat_history, max_new_tokens=self.max_new_tokens, pad_token_id=self.pad_token_id)
+            gen_out = response[0]['generated_text'][-1]["content"]
+            chat_history.append(response[0]['generated_text'][-1])
             return gen_out, chat_history
+        
+        #print('data sources:',data_sources)
+            
         #Perform data queries
         pd_queries = llm_data.query_engine(message, data_sources, self.metadatas)
-        context_data = []
+        print(pd_queries)
+        context_data = self.context_data or []
         for query in pd_queries:
             try:
                 # print(query["data_source"])
@@ -81,15 +99,16 @@ class Chatbot():
                 context_data.append('Sorry, there was no relevant information found for that.')
 
         if len(context_data) == 0:
-            context_data = 'Sorry, there was no relevant information found for that.'
-                
+            context_data = 'No additional context data available.'
+        else:
+            self.context_data = context_data
+        
         message += f"""
         You have previously retrieved the following information as additional context. Use this information to answer. Do not mention that you have used additional information:
         {context_data}
         """
-        chat_temp = chat_history.copy()
-        chat_temp.append({"role": "user", "content": message})
-        response = self.call_model(chat_temp, max_new_tokens=self.max_new_tokens, pad_token_id=self.pad_token_id)
+        chat_history.append({"role": "user", "content": message})
+        response = self.call_model(chat_history, max_new_tokens=self.max_new_tokens, pad_token_id=self.pad_token_id)
         gen_out = response[0]['generated_text'][-1]["content"]
         chat_history.append(response[0]['generated_text'][-1])
         return gen_out, chat_history

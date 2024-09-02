@@ -1,7 +1,3 @@
-'''
-This file contains the implementation of the chat system for question-answering.
-'''
-
 from .llm_core import *
 
 import os
@@ -11,22 +7,22 @@ import json
 DATA_SOURCE_NAMES = ['Sales', 'Customer Support Tickets', 'Invoices', 'Resumes']
 DATA_SOURCE_PATH = '../data-samples'
 
-def _load_data(name):
+def _load_data(name, location=DATA_SOURCE_PATH):
     if name == 'Sales':
-        df = pd.read_csv(os.path.join(DATA_SOURCE_PATH, 'sales_data_sample_clean.csv'))
+        df = pd.read_csv(os.path.join(location, 'sales_data_sample_clean.csv'))
     elif name == 'Customer Support Tickets':
-        df = pd.read_csv(os.path.join(DATA_SOURCE_PATH, 'customer_support_tickets_clean.csv'))
+        df = pd.read_csv(os.path.join(location, 'customer_support_tickets_clean.csv'))
     elif name == 'Invoices':
-        df = pd.read_csv(os.path.join(DATA_SOURCE_PATH, 'customer_shopping_data_clean.csv'))
+        df = pd.read_csv(os.path.join(location, 'customer_shopping_data_clean.csv'))
     else:
-        df = pd.read_csv(os.path.join(DATA_SOURCE_PATH, 'Resume_clean.csv'))
+        df = pd.read_csv(os.path.join(location, 'Resume_clean.csv'))
         df = df.drop(columns=['Category', 'ID', 'Resume_html', 'Key_points'])
     return df
 
-def _load_metadata(name):
+def _load_metadata(name, location=DATA_SOURCE_PATH):
     metadata = """"""
     if name == 'Sales':
-        sales_df = pd.read_csv(os.path.join(DATA_SOURCE_PATH, 'sales_data_sample_clean.csv'), nrows=0)
+        sales_df = pd.read_csv(os.path.join(location, 'sales_data_sample_clean.csv'), nrows=0)
         column_names = sales_df.columns.tolist()
         metadata += f"""Sales: {{
             type: DataFrame,
@@ -34,7 +30,7 @@ def _load_metadata(name):
             columns: {column_names}
         }}"""
     elif name == 'Customer Support Tickets':
-        cst_df = pd.read_csv(os.path.join(DATA_SOURCE_PATH, 'customer_support_tickets_clean.csv'), nrows=0)
+        cst_df = pd.read_csv(os.path.join(location, 'customer_support_tickets_clean.csv'), nrows=0)
         column_names = cst_df.columns.tolist()
         metadata += f"""Customer Support Tickets: {{
             type: DataFrame,
@@ -42,7 +38,7 @@ def _load_metadata(name):
             columns: {column_names}
         }}"""
     elif name == 'Invoices':
-        invoice_df = pd.read_csv(os.path.join(DATA_SOURCE_PATH, 'customer_shopping_data_clean.csv'), nrows=0)
+        invoice_df = pd.read_csv(os.path.join(location, 'customer_shopping_data_clean.csv'), nrows=0)
         column_names = invoice_df.columns.tolist()
         metadata += f"""Invoices: {{
             type: DataFrame,
@@ -50,7 +46,7 @@ def _load_metadata(name):
             columns: {column_names}
         }}"""
     else:
-        resume_df = pd.read_csv(os.path.join(DATA_SOURCE_PATH, 'Resume_clean.csv'), nrows=0)
+        resume_df = pd.read_csv(os.path.join(location, 'Resume_clean.csv'), nrows=0)
         resume_df = resume_df.drop(columns=['Category', 'ID', 'Resume_html', 'Key_points'])
         column_names = resume_df.columns.tolist()
         metadata += f"""Resumes: {{
@@ -63,15 +59,15 @@ def _load_metadata(name):
 def setup_metadata(data_sources=DATA_SOURCE_NAMES, data_source_path=DATA_SOURCE_PATH):
     metadatas = []
     for name in data_sources:
-        metadatas.append(_load_metadata(name))
+        metadatas.append(_load_metadata(name, data_source_path))
 
     return metadatas
 
 def query_sources(user_query, metadatas):
-    structure = "data_sources: #List data source name"
+    structure = "data_sources: [#List data source name]"
     prompt = f"""
-    Here is a message from the user: "{user_query}". Based on this message, your job is to decide which of the data sources is/are required to answer the query.
-    Return your answer as a json with the following structure. Only return the json, nothing more:
+    Here is a message from the user: "{user_query}". Based on this message, your job is to decide which of the data sources is/are required to answer the query. If the data sources cannot be used to answer the question, return an empty list.
+    Return your answer as a json with the following structure. Make sure to return a valid json. Only return the json, nothing more:
     {structure}
     The data sources and their description is given below:
     {metadatas}
@@ -99,11 +95,11 @@ def query_engine(user_query, data_sources, metadatas):
             },
             ...
         ]
-    }}"""
+    """
 
     prompt = f"""
-    Here is a message from the user: "{user_query}". Based on this message, your job is to write pandas dataframe query strings (either df.query() or df.eval()) that retrieves relevant information based on the dataframe sources. Pay attention to the dataframe columns and notes (if provided) to form the query.
-    Return your answer as a json with the following structure. Only return the json, nothing more:
+    Here is a message from the user: "{user_query}". Based on this message, your job is to write pandas dataframe query strings (either df.query() or df.eval()) that retrieves relevant information based on the dataframe sources. Pay attention to the dataframe columns and notes (if provided) to form the query. Your query must be valid and be executable as python code. Remember to try all possibilities like lowercase/uppercase for text.
+    Return your answer as a json with the following structure. Make sure to return a valid json. Only return the json, nothing more:
     {structure}
     The data can be retrieved from the following dataframe source(s):
     {sess_meta}

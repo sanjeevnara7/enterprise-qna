@@ -2,7 +2,7 @@ from semantic_router import Route
 from semantic_router.encoders import HuggingFaceEncoder
 from semantic_router.layer import RouteLayer
 
-import utterance_config
+from . import utterance_config
 
 chitchat = Route(
     name="chitchat",
