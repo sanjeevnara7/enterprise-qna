@@ -8,6 +8,13 @@ An implementation of a question-answering system using LLaMA-1.3-8B-Instruct wit
 </p>
 
 ## System Overview
+The system implemented in this repo is a minimal version of the system in the diagram.
+- Data Ingestion Layer: Retrieves data from .csv files downloaded from Kaggle and preprocesses them for retrieval during runtime.
+- Semantic Routing: Convert the input message to a semantic vector and pass it through a graph of
+semantic routes to determine the intent of the user.
+- Query and Retrieval Engine: Determine what kind of data is required, and retrieve it from the
+database. The relevant data will be appended as context to the user’s message.
+- LLM Prediction : The center of the system which will generate answers for the users queries. Uses LLaMA-1.3-8B-Instruct as the underlying model.
 
 ## Data
 This Q&A system uses the following sample data sources, all downloaded from Kaggle:
