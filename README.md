@@ -4,7 +4,7 @@
 An implementation of a question-answering system using LLaMA-1.3-8B-Instruct with sample enterprise data.
 
 <p align="center">
-  <img src="https://github.com/sanjeevnara7/enterprise-qna/blob/main/assets/erp_flowchart.png">
+  <img src="https://github.com/sanjeevnara7/enterprise-qna/blob/main/assets/erp_flowchart.png" width="50%">
 </p>
 
 ## System Overview
