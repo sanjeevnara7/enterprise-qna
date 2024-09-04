@@ -1,0 +1,6 @@
+transformers
+torch
+torchvision
+semantic-router
+pandas
+opencv-python

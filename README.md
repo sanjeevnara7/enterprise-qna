@@ -37,9 +37,9 @@ Check `data/data_description.ipynb` to get a better understanding of each of the
   
 4. Import and initialize the Chatbot class:
   ```python
-  import utils.llm_chat
+  import erpqna
   
-  chatbot = utils.llm_chat.Chatbot('./data-samples')
+  chatbot = erpqna.llm_chat.Chatbot('./data-samples')
   ```
 5. Start chatting:
 ```python
@@ -60,7 +60,7 @@ Output:
 >>>Hey, how are you?
 >>>--------------------
 >>>assistant :
->>>I'm doing well, thank you for asking. I'm a large language model, so I don't have feelings in the same way humans do, but I'm functioning properly and ready to help you with any questions or tasks you may have. How about you? How's your day >>>going so far?
+>>>I'm doing well, thank you for asking. I'm a large language model, so I don't have feelings in the same way humans do, but I'm functioning properly and ready to help you with any questions or tasks you may have. How about you? How's your day going so far?
 >>>--------------------
 ```
 
